@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "445257694353",
+    "project_id": "fpsales-4c6df",
+    "storage_bucket": "fpsales-4c6df.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:445257694353:android:a723500b19fe4186c75330",
+        "android_client_info": {
+          "package_name": "com.lifeplanner.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "445257694353-25sdeanb1d21inv6q25bg4ta7vs5nqtp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.lifeplanner.app",
+            "certificate_hash": "3403968e8ffd32351dd4b24cbb08e07c85cbfbfd"
+          }
+        },
+        {
+          "client_id": "445257694353-vjrcg7phbgf5ljkhh2u9m223vbqrvrd1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCd8MPT-OA_Gl-Vq03slUWm7LxbSuK34-w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "445257694353-vjrcg7phbgf5ljkhh2u9m223vbqrvrd1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
