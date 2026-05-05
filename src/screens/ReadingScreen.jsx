@@ -24,7 +24,7 @@ export default function ReadingScreen() {
   const [showColMgr, setShowColMgr] = useState(false)
   const [editCol,    setEditCol]    = useState(null)
   const [newCol,     setNewCol]     = useState({ name:'', color:'#F57F17', emoji:'📦' })
-  const emptyForm = { title:'', author:'', genre:'Autoajuda', status:'toread', pages:'', rating:0, notes:'', collection:'' }
+  const emptyForm = { title:'', author:'', genre:'Romance', status:'toread', pages:'', rating:0, notes:'', collection:'', colOrder:'' }
   const [form,   setForm]   = useState(emptyForm)
   const [search, setSearch] = useState('')
 
@@ -41,13 +41,13 @@ export default function ReadingScreen() {
 
   const openEdit = (book) => {
     setEditItem(book)
-    setForm({ title:book.title, author:book.author||'', genre:book.genre, status:book.status, pages:String(book.pages||''), rating:book.rating||0, notes:book.notes||'', collection:book.collection||'' })
+    setForm({ title:book.title, author:book.author||'', genre:book.genre, status:book.status, pages:String(book.pages||''), rating:book.rating||0, notes:book.notes||'', collection:book.collection||'', colOrder:String(book.colOrder||'') })
     setShowForm(true)
   }
 
   const save = async () => {
     if (!form.title.trim()) return
-    const data = { ...form, pages: parseInt(form.pages)||0 }
+    const data = { ...form, pages: parseInt(form.pages)||0, colOrder: parseInt(form.colOrder)||0 }
     if (editItem) {
       await update(editItem.id, data)
     } else {
@@ -122,7 +122,7 @@ export default function ReadingScreen() {
                       {book.pages>0&&<span className="tag" style={{ background:'#f0efe8', color:'#888' }}>{book.pages} pág.</span>}
                       {book.collection&&(
                         <span className="tag" style={{ background:(col?.color||'#F57F17')+'22', color:col?.color||'#F57F17' }}>
-                          {col?.emoji||'📦'} {book.collection}
+                          {book.colOrder?`#${book.colOrder} · `:''}{col?.emoji||'📦'} {book.collection}
                         </span>
                       )}
                     </div>
@@ -184,6 +184,12 @@ export default function ReadingScreen() {
                     <option key={c.id} value={c.name}>{c.emoji||'📦'} {c.name}</option>
                   ))}
                 </select>
+                {form.collection && (
+                  <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:4 }}>
+                    <label className="form-label" style={{ marginBottom:0, flexShrink:0 }}>Nº na coleção</label>
+                    <input type="number" placeholder="Ex: 1, 2, 3..." value={form.colOrder} onChange={e=>setForm({...form,colOrder:e.target.value})} min="1" style={{ width:90 }}/>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="form-label">Status</label>

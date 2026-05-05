@@ -14,6 +14,7 @@ import GroupMoviesScreen        from './screens/GroupMoviesScreen.jsx'
 import ChoresScreen             from './screens/ChoresScreen.jsx'
 import WishlistScreen           from './screens/WishlistScreen.jsx'
 import WaterScreen              from './screens/WaterScreen.jsx'
+import PrivateFinanceScreen     from './screens/PrivateFinanceScreen.jsx'
 import CustomTabScreen          from './screens/CustomTabScreen.jsx'
 import ProfileModal             from './components/ProfileModal.jsx'
 import NewTabModal              from './components/NewTabModal.jsx'
@@ -29,8 +30,9 @@ const BUILTIN_TABS = [
   { id:'reading',     label:'Leitura',        icon:'📚', scope:'private' },
   { id:'movies',      label:'Filmes',         icon:'🎬', scope:'private' },
   { id:'groupmovies', label:'Filmes do Grupo',icon:'🍿', scope:'group'   },
-  { id:'chores',      label:'Tarefas Casa',   icon:'🧹', scope:'group'   },
-  { id:'wishlist',    label:'Wishlist',       icon:'🛍️', scope:'private' },
+  { id:'chores',          label:'Tarefas Casa',     icon:'🧹', scope:'group'   },
+  { id:'wishlist',        label:'Wishlist',         icon:'🛍️', scope:'private' },
+  { id:'privatefinance',  label:'Finanças Privadas',icon:'🔐', scope:'private' },
 ]
 
 const SCREENS = {
@@ -44,8 +46,9 @@ const SCREENS = {
   reading:     <ReadingScreen />,
   movies:      <MoviesScreen />,
   groupmovies: <GroupMoviesScreen />,
-  chores:      <ChoresScreen />,
-  wishlist:    <WishlistScreen />,
+  chores:          <ChoresScreen />,
+  wishlist:        <WishlistScreen />,
+  privatefinance:  <PrivateFinanceScreen />,
 }
 
 const S_TABS      = 'lp_visible_tabs'

@@ -59,7 +59,21 @@ export default function TasksScreen() {
   const [form, setForm] = useState(emptyForm)
 
   useEffect(() => {
-    if ('Notification' in window) setNotifEnabled(Notification.permission === 'granted')
+    const check = async () => {
+      // Check web notification
+      if ('Notification' in window && Notification.permission === 'granted') {
+        setNotifEnabled(true); return
+      }
+      // Check native Capacitor
+      if (typeof window !== 'undefined' && window.Capacitor?.isNativePlatform?.()) {
+        try {
+          const { LocalNotifications } = await import('@capacitor/local-notifications')
+          const { display } = await LocalNotifications.checkPermissions()
+          setNotifEnabled(display === 'granted')
+        } catch {}
+      }
+    }
+    check()
   }, [])
 
   useEffect(() => {
@@ -67,8 +81,21 @@ export default function TasksScreen() {
   }, [tasks.length, notifEnabled])
 
   const askNotifPermission = async () => {
-    const granted = await requestNotificationPermission()
-    setNotifEnabled(granted)
+    try {
+      if (typeof window !== 'undefined' && window.Capacitor?.isNativePlatform?.()) {
+        const { LocalNotifications } = await import('@capacitor/local-notifications')
+        const { display } = await LocalNotifications.requestPermissions()
+        setNotifEnabled(display === 'granted')
+        if (display !== 'granted') alert('Vá em Configurações → Apps → Life Planner → Notificações e ative.')
+      } else {
+        const granted = await requestNotificationPermission()
+        setNotifEnabled(granted)
+      }
+    } catch(e) {
+      console.error('Notif permission error:', e)
+      const granted = await requestNotificationPermission()
+      setNotifEnabled(granted)
+    }
   }
 
   const t0 = today()

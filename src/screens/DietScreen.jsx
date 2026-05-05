@@ -76,6 +76,7 @@ export default function DietScreen() {
   const { items: meals,       add,          update,           remove          } = useData('meals',           'private')
   const { items: goalDocs,    add: addGoal, update: updateGoal                } = useData('dietSettings',    'private')
   const { items: prescribed,  add: addPres, update: updatePres, remove: removePres } = useData('dietPrescribed', 'private')
+  const { items: userFoods,   add: addUserFood, remove: removeUserFood        } = useData('userFoods',       'private')
 
   const dietGoal   = goalDocs[0]?.goal || 2000
   const setDietGoal = async (val) => {
@@ -106,15 +107,22 @@ export default function DietScreen() {
   const [weightG,      setWeightG]      = useState(100)
   const [mealType,     setMealType]     = useState('Almoço')
   const [newGoal,      setNewGoal]      = useState(dietGoal)
-  const [customFood,   setCustomFood]   = useState({ name:'', cal:'', carb:'', prot:'', fat:'' })
+  const [customFood,   setCustomFood]   = useState({ name:'', cal:'', carb:'', prot:'', fat:'', saveToDb:true })
   const [bevForm,      setBevForm]      = useState({ name:'', ml:'', cal100ml:'' })
 
   // Prescribed diet state
   const [showPresForm,  setShowPresForm]  = useState(false)
-  const [presForm,      setPresForm]      = useState({ meal:'Café da manhã', text:'', options:'' })
+  const [presForm,      setPresForm]      = useState({ meal:'Café da manhã', text:'', options:'', cal:'' })
   const [editPresItem,  setEditPresItem]  = useState(null)
+  const [presSearch,    setPresSearch]    = useState('')
+  const [presSelFood,   setPresSelFood]   = useState(null)
+  const [presWeightG,   setPresWeightG]   = useState(100)
 
-  const filtered = FOOD_DB.filter(f => f.name.toLowerCase().includes(search.toLowerCase()))
+  const allFoods = [
+    ...FOOD_DB,
+    ...userFoods.map(f => ({ name:f.name, kcal100:f.kcal100||0, carb:f.carb||0, prot:f.prot||0, fat:f.fat||0, isCustom:true, id:f.id }))
+  ].sort((a,b)=>a.name.localeCompare(b.name))
+  const filtered = allFoods.filter(f => f.name.toLowerCase().includes(search.toLowerCase()))
   const preview  = selFood ? calcFood(selFood, weightG) : null
 
   const openEdit = (item) => {
@@ -134,10 +142,25 @@ export default function DietScreen() {
       await add({ name:`${bevForm.name} (${ml}ml)`, cal, carb:0, prot:0, fat:0, mealType, date:todayKey, isBeverage:true, ml })
       setBevForm({ name:'', ml:'', cal100ml:'' })
     } else if (mode === 'custom') {
-      const cal = parseInt(customFood.cal) || 0
+      const cal  = parseInt(customFood.cal)  || 0
+      const carb = parseFloat(customFood.carb) || 0
+      const prot = parseFloat(customFood.prot) || 0
+      const fat  = parseFloat(customFood.fat)  || 0
       if (!customFood.name || !cal) return
-      await add({ name:customFood.name, cal, carb:parseFloat(customFood.carb)||0, prot:parseFloat(customFood.prot)||0, fat:parseFloat(customFood.fat)||0, mealType, date:todayKey })
-      setCustomFood({ name:'', cal:'', carb:'', prot:'', fat:'' })
+      // Save to today's meals
+      await add({ name:customFood.name, cal, carb, prot, fat, mealType, date:todayKey })
+      // Also save to personal food database if checkbox checked
+      if (customFood.saveToDb) {
+        const weightRef = 100
+        await addUserFood({
+          name:     customFood.name,
+          kcal100:  cal,
+          carb:     carb,
+          prot:     prot,
+          fat:      fat,
+        })
+      }
+      setCustomFood({ name:'', cal:'', carb:'', prot:'', fat:'', saveToDb:true })
     } else {
       if (!selFood) return
       const calc = calcFood(selFood, weightG)
@@ -169,13 +192,25 @@ export default function DietScreen() {
 
   const savePrescribed = async () => {
     if (!presForm.text.trim()) return
+    // If a food was selected from DB, use its calculated values
+    const calc = presSelFood ? calcFood(presSelFood, presWeightG) : null
+    const data = {
+      meal:    presForm.meal,
+      text:    presForm.text.trim(),
+      options: presForm.options?.trim() || '',
+      cal:     calc ? calc.cal  : (parseInt(presForm.cal)||0),
+      carb:    calc ? calc.carb : 0,
+      prot:    calc ? calc.prot : 0,
+      fat:     calc ? calc.fat  : 0,
+    }
     if (editPresItem) {
-      await updatePres(editPresItem.id, { meal:presForm.meal, text:presForm.text.trim(), options:presForm.options.trim(), cal:parseInt(presForm.cal)||0 })
+      await updatePres(editPresItem.id, data)
       setEditPresItem(null)
     } else {
-      await addPres({ meal:presForm.meal, text:presForm.text.trim(), options:presForm.options.trim(), cal:parseInt(presForm.cal)||0 })
+      await addPres(data)
     }
     setPresForm({ meal:'Café da manhã', text:'', options:'', cal:'' })
+    setPresSearch(''); setPresSelFood(null); setPresWeightG(100)
     setShowPresForm(false)
   }
 
@@ -452,6 +487,22 @@ export default function DietScreen() {
                     <div><label className="form-label">Proteína (g)</label><input type="number" placeholder="0" value={customFood.prot} onChange={e=>setCustomFood({...customFood,prot:e.target.value})}/></div>
                     <div><label className="form-label">Gordura (g)</label><input type="number" placeholder="0" value={customFood.fat} onChange={e=>setCustomFood({...customFood,fat:e.target.value})}/></div>
                   </div>
+                  <label style={{ display:'flex', alignItems:'center', gap:8, fontSize:13, cursor:'pointer' }}>
+                    <input type="checkbox" checked={customFood.saveToDb} onChange={e=>setCustomFood({...customFood,saveToDb:e.target.checked})}/>
+                    Salvar no meu banco de alimentos (aparece na busca depois)
+                  </label>
+                  {userFoods.length > 0 && (
+                    <div style={{ background:'#f8f8f6', borderRadius:8, padding:'8px 10px' }}>
+                      <div style={{ fontSize:11, color:'#888', fontWeight:600, marginBottom:6 }}>Meus alimentos salvos</div>
+                      {userFoods.map(f=>(
+                        <div key={f.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'4px 0', borderBottom:'0.5px solid #f0efe8' }}>
+                          <span style={{ flex:1, fontSize:12 }}>{f.name}</span>
+                          <span style={{ fontSize:11, color:'#888' }}>{f.kcal100} kcal/100g</span>
+                          <button onClick={()=>removeUserFood(f.id)} style={{ background:'none', border:'none', cursor:'pointer', color:'#ddd', fontSize:14 }}>×</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -467,7 +518,7 @@ export default function DietScreen() {
 
       {/* ── PRESCRIBED FORM MODAL ── */}
       {showPresForm && (
-        <div className="modal-overlay" onClick={()=>{ setShowPresForm(false); setEditPresItem(null) }}>
+        <div className="modal-overlay" onClick={()=>{ setShowPresForm(false); setEditPresItem(null); setPresSearch(''); setPresSelFood(null) }}>
           <div className="modal-sheet" onClick={e=>e.stopPropagation()}>
             <div className="sheet-handle"/>
             <div className="sheet-title">{editPresItem?'Editar item prescrito':'Novo item prescrito'}</div>
@@ -483,12 +534,52 @@ export default function DietScreen() {
               <input type="text" placeholder="Ex: Frango grelhado + arroz + salada" value={presForm.text} onChange={e=>setPresForm({...presForm,text:e.target.value})} autoFocus/>
               <textarea placeholder="Opções (ex: pode substituir por atum)" value={presForm.options} onChange={e=>setPresForm({...presForm,options:e.target.value})}
                 style={{ resize:'none', height:56, padding:'8px 10px', border:'0.5px solid #ddd', borderRadius:8, fontSize:13 }}/>
-              <div><label className="form-label">Calorias estimadas (opcional)</label>
-                <input type="number" placeholder="0" value={presForm.cal} onChange={e=>setPresForm({...presForm,cal:e.target.value})}/>
+
+              {/* Food DB lookup for calorie calc */}
+              <div style={{ background:'#f8f8f6', borderRadius:8, padding:'10px' }}>
+                <label className="form-label">Calcular calorias pelo banco (opcional)</label>
+                <input type="search" placeholder="Buscar alimento..." value={presSearch}
+                  onChange={e=>{ setPresSearch(e.target.value); setPresSelFood(null) }}/>
+                {presSearch && !presSelFood && (
+                  <div style={{ border:'0.5px solid #ddd', borderRadius:8, maxHeight:150, overflowY:'auto', marginTop:4 }}>
+                    {allFoods.filter(f=>f.name.toLowerCase().includes(presSearch.toLowerCase())).slice(0,8).map(f=>(
+                      <div key={f.name} onClick={()=>{ setPresSelFood(f); setPresSearch(f.name) }}
+                        style={{ padding:'8px 12px', cursor:'pointer', fontSize:13, borderBottom:'0.5px solid #f5f5f5', display:'flex', justifyContent:'space-between' }}>
+                        <span>{f.name}</span>
+                        <span style={{ color:'#999', fontSize:11 }}>{f.kcal100} kcal/100g</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {presSelFood && (
+                  <div style={{ marginTop:6 }}>
+                    <label className="form-label">Peso (g)</label>
+                    <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+                      <input type="number" value={presWeightG} min="1" onChange={e=>setPresWeightG(parseInt(e.target.value)||1)} style={{ flex:1 }}/>
+                      {[50,100,150,200].map(w=>(
+                        <button key={w} onClick={()=>setPresWeightG(w)} style={{ padding:'6px 8px', borderRadius:8, border:'0.5px solid #ddd', background:presWeightG===w?'#534AB7':'#f8f8f6', color:presWeightG===w?'#fff':'#888', fontSize:11, cursor:'pointer' }}>{w}g</button>
+                      ))}
+                    </div>
+                    {(() => { const c=calcFood(presSelFood,presWeightG); return (
+                      <div style={{ display:'flex', gap:12, marginTop:6, fontSize:12, color:'#534AB7', fontWeight:600 }}>
+                        <span>{c.cal} kcal</span>
+                        <span style={{ color:'#BA7517' }}>C:{c.carb}g</span>
+                        <span style={{ color:'#27500A' }}>P:{c.prot}g</span>
+                        <span style={{ color:'#A32D2D' }}>G:{c.fat}g</span>
+                      </div>
+                    )})()}
+                  </div>
+                )}
+                {!presSelFood && (
+                  <div style={{ marginTop:6 }}>
+                    <label className="form-label">Ou informe as calorias manualmente</label>
+                    <input type="number" placeholder="0" value={presForm.cal} onChange={e=>setPresForm({...presForm,cal:e.target.value})}/>
+                  </div>
+                )}
               </div>
             </div>
             <div style={{ display:'flex', gap:8 }}>
-              <button className="btn-ghost" onClick={()=>{ setShowPresForm(false); setEditPresItem(null) }}>Cancelar</button>
+              <button className="btn-ghost" onClick={()=>{ setShowPresForm(false); setEditPresItem(null); setPresSearch(''); setPresSelFood(null) }}>Cancelar</button>
               <button className="btn-primary" onClick={savePrescribed}>{editPresItem?'Salvar':'Adicionar'}</button>
             </div>
           </div>

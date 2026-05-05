@@ -25,10 +25,10 @@ const ROW_COLORS = [
 
 export default function FinanceScreen() {
   const { group } = useAuth()
-  const { items: transactions, add, update, remove }           = useData('transactions', 'group')
-  const { items: cycleDocs,    add: addCycle, update: updateCycle } = useData('financeSettings', 'group')
+  const { items: transactions, add, update, remove }           = useData('transactionsPrivate', 'private')
+  const { items: cycleDocs,    add: addCycle, update: updateCycle } = useData('financeSettingsPrivate', 'private')
   const { items: trackerRows,  add: addRow,   update: updateRow, remove: removeRow } = useData('financeTracker', 'private')
-  const { items: sobrasData,   add: addSobra, update: updateSobra } = useData('financeSobras', 'group')
+  const { items: sobrasData,   add: addSobra, update: updateSobra } = useData('financeSobrasPrivate', 'private')
 
   const cycleDay = cycleDocs[0]?.cycleDay || 1
   const setCycleDay = async v => {
@@ -313,25 +313,25 @@ export default function FinanceScreen() {
                         style={{ textAlign:'right', fontWeight:700, fontSize:13, border:'none', background:'transparent', color:'#791F1F', width:'100%' }}/>
                     </div>
                     {/* 50% gastos */}
-                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:0, padding:'8px 12px', background:'#EEEDFE', alignItems:'center', borderBottom:'0.5px solid #f0efe8' }}>
-                      <span style={{ fontSize:12, fontWeight:600, color:'#3C3489' }}>50% para gastos</span>
-                      <span style={{ fontSize:12, fontWeight:700, color:'#3C3489', textAlign:'right' }}>{fmtBRL(gastos50)}</span>
-                    </div>
-                    {/* 30% livres — dividido entre Pâmela e Filipe */}
-                    <div style={{ padding:'8px 12px', background:'#EAF3DE', borderBottom:'0.5px solid #f0efe8' }}>
-                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
-                        <span style={{ fontSize:12, fontWeight:600, color:'#27500A' }}>30% livres</span>
-                        <span style={{ fontSize:12, fontWeight:700, color:'#27500A' }}>{fmtBRL(livres30)}</span>
+                    <div style={{ padding:'6px 12px', background:'#fff', borderBottom:'0.5px solid #f0efe8' }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+                        <span style={{ fontSize:12, fontWeight:600, color:'#534AB7' }}>50% para gastos</span>
+                        <span style={{ fontSize:12, fontWeight:700, color:'#534AB7' }}>{fmtBRL(gastos50)}</span>
                       </div>
                       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
-                        {[{label:'→ Para Pâmela',field:'livres30Pamela'},{label:'→ Para Filipe',field:'livres30Filipe'}].map(r=>(
+                        {[{label:'→ Para Pâmela',field:'gastos50Pamela'},{label:'→ Para Filipe',field:'gastos50Filipe'}].map(r=>(
                           <div key={r.field} style={{ display:'flex', alignItems:'center', gap:4 }}>
-                            <span style={{ fontSize:11, color:'#3B6D11', flex:1 }}>{r.label}</span>
+                            <span style={{ fontSize:11, color:'#888', flex:1 }}>{r.label}</span>
                             <input type="number" placeholder="R$ 0" defaultValue={doc[r.field]||''} onBlur={e=>save(r.field,parseFloat(e.target.value)||0)}
-                              style={{ width:70, textAlign:'right', fontSize:11, border:'0.5px solid #a5d6a7', borderRadius:6, padding:'3px 5px' }}/>
+                              style={{ width:70, textAlign:'right', fontSize:11, border:'0.5px solid #ddd', borderRadius:6, padding:'3px 5px' }}/>
                           </div>
                         ))}
                       </div>
+                    </div>
+                    {/* 30% livres */}
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:0, padding:'8px 12px', background:'#EAF3DE', alignItems:'center', borderBottom:'0.5px solid #f0efe8' }}>
+                      <span style={{ fontSize:12, fontWeight:600, color:'#27500A' }}>30% livres</span>
+                      <span style={{ fontSize:12, fontWeight:700, color:'#27500A', textAlign:'right' }}>{fmtBRL(livres30)}</span>
                     </div>
                     {/* 20% investimento */}
                     <div style={{ padding:'8px 12px', background:'#EEEDFE' }}>

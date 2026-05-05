@@ -204,12 +204,12 @@ export default function CalendarScreen() {
 
       <div className="screen-scroll">
         {view==='month' && <>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:1, marginBottom:2 }}>
-            {DAYS.map(d=><div key={d} style={{ textAlign:'center', fontSize:10, color:'#bbb', padding:'2px 0' }}>{d}</div>)}
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(7, minmax(0,1fr))', gap:1, marginBottom:0 }}>
+            {DAYS.map(d=><div key={d} style={{ textAlign:'center', fontSize:10, color:'#bbb', padding:'3px 0', boxSizing:'border-box', overflow:'hidden' }}>{d}</div>)}
           </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:1 }}>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(7, minmax(0,1fr))', gap:1 }}>
             {Array.from({length:firstDay},(_,i)=>(
-              <div key={`p${i}`} style={{ padding:'4px 2px', minHeight:44, textAlign:'center', fontSize:11, color:'#e0ddd8' }}>{prevDays-firstDay+1+i}</div>
+              <div key={`p${i}`} style={{ padding:'4px 2px', minHeight:36, textAlign:'center', fontSize:11, color:'#e0ddd8', overflow:'hidden', boxSizing:'border-box' }}>{prevDays-firstDay+1+i}</div>
             ))}
             {Array.from({length:daysInMonth},(_,i)=>{
               const d  = i + 1
@@ -222,7 +222,8 @@ export default function CalendarScreen() {
                 <div key={d} onClick={()=>setSel(ds)} style={{
                   padding:'3px 2px', minHeight:36, cursor:'pointer', borderRadius:8,
                   background: isSel ? '#EEEDFE' : dayBg || 'transparent',
-                  border: isToday ? '1.5px solid #534AB7' : '1.5px solid transparent'
+                  border: isToday ? '1.5px solid #534AB7' : '1.5px solid transparent',
+                  overflow:'hidden', boxSizing:'border-box', minWidth:0
                 }}>
                   <div style={{ textAlign:'center', fontSize:12, fontWeight:isToday?700:400, color:isToday?'#534AB7':'#1a1a18' }}>{d}</div>
                   <div style={{ display:'flex', flexDirection:'column', gap:1, padding:'0 1px' }}>
@@ -230,7 +231,7 @@ export default function CalendarScreen() {
                       <div key={j} style={{
                         fontSize:7, background:e.color, color:'#fff', borderRadius:3,
                         padding:'1px 2px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis',
-                        opacity: e.date < fmt(today) ? 0.6 : 1, lineHeight:1.3
+                        opacity: e.date < fmt(today) ? 0.6 : 1, lineHeight:1.3, maxWidth:'100%'
                       }}>{e._virtual?'🔁':''}{e.emoji||''}{e.title}</div>
                     ))}
                   </div>
