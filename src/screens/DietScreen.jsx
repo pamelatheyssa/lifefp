@@ -541,7 +541,7 @@ export default function DietScreen() {
                   ))}
                 </div>
               </div>
-              {/* Food search */}
+              {/* Food search + manual option */}
               <div>
                 <label className="form-label">Alimento</label>
                 <input type="search" placeholder="Buscar no banco de alimentos..." value={presSearch}
@@ -554,11 +554,34 @@ export default function DietScreen() {
                         <span>{f.name}</span><span style={{color:'#999',fontSize:11}}>{f.kcal100} kcal/100g</span>
                       </div>
                     ))}
-                    {/* Allow custom food name */}
-                    <div onClick={()=>{setPresSelFood({name:presSearch,kcal100:0,carb:0,prot:0,fat:0});setPresForm(pf=>({...pf,foodName:presSearch}))}}
-                      style={{padding:'8px 12px',cursor:'pointer',fontSize:13,color:'#534AB7',borderTop:'0.5px solid #eee'}}>
-                      + Usar "{presSearch}" como nome
+                    {/* Always show manual option */}
+                    <div onClick={()=>{
+                      setPresSelFood({name:presSearch,kcal100:0,carb:0,prot:0,fat:0,isManual:true})
+                      setPresForm(pf=>({...pf,foodName:presSearch}))
+                    }} style={{padding:'8px 12px',cursor:'pointer',fontSize:13,color:'#534AB7',background:'#EEEDFE',fontWeight:600}}>
+                      ✏️ Cadastrar "{presSearch}" manualmente
                     </div>
+                  </div>
+                )}
+                {/* Manual calories input when food not in DB */}
+                {presSelFood?.isManual && (
+                  <div style={{background:'#EEEDFE',borderRadius:8,padding:'10px 12px',marginTop:6}}>
+                    <div style={{fontSize:11,color:'#7F77DD',fontWeight:600,marginBottom:8}}>Informe os dados nutricionais (por 100g)</div>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+                      {[{l:'Kcal/100g',k:'kcal100'},{l:'Carb/100g',k:'carb'},{l:'Prot/100g',k:'prot'},{l:'Gord/100g',k:'fat'}].map(x=>(
+                        <div key={x.k}>
+                          <label className="form-label">{x.l}</label>
+                          <input type="number" placeholder="0" value={presSelFood[x.k]||''}
+                            onChange={e=>setPresSelFood(f=>({...f,[x.k]:parseFloat(e.target.value)||0}))}/>
+                        </div>
+                      ))}
+                    </div>
+                    <label style={{display:'flex',alignItems:'center',gap:8,fontSize:12,cursor:'pointer',marginTop:8}}>
+                      <input type="checkbox" defaultChecked onChange={e=>{
+                        if(e.target.checked) addUserFood({name:presSelFood.name,kcal100:presSelFood.kcal100||0,carb:presSelFood.carb||0,prot:presSelFood.prot||0,fat:presSelFood.fat||0})
+                      }}/>
+                      Salvar no banco de alimentos para usar depois
+                    </label>
                   </div>
                 )}
               </div>

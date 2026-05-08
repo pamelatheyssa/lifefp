@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useData } from '../useData.js'
+import { isNative, scheduleWaterReminder, cancelWaterReminders, requestNotificationPermission, checkNotificationPermission } from '../notifications.js'
 
 // Retorna a data atual no fuso de Brasília (UTC-3) como YYYY-MM-DD
 function todayBrasilia() {
@@ -74,8 +75,24 @@ export default function WaterScreen() {
   const filledCups   = Math.floor(consumed / selectedSize)
   const partialPct   = (consumed % selectedSize) / selectedSize
 
-  // Reminder timer
+  const [notifEnabled, setNotifEnabled] = useState(false)
+
+  // Check notification permission on mount
   useEffect(() => {
+    checkNotificationPermission().then(setNotifEnabled)
+  }, [])
+
+  // Schedule water reminders via Capacitor on native
+  // On web, keep the old setInterval approach
+  useEffect(() => {
+    if (isNative()) {
+      // Schedule native reminders whenever settings or consumed changes
+      if (notifEnabled) {
+        scheduleWaterReminder({ intervalMinutes: reminderInterval, consumed, goal })
+      }
+      return () => {} // cleanup handled by next call cancelling previous
+    }
+    // Web fallback — setInterval
     if (timerRef.current) clearInterval(timerRef.current)
     timerRef.current = setInterval(() => {
       if (consumed >= goal) return
@@ -90,7 +107,7 @@ export default function WaterScreen() {
       }
     }, reminderInterval * 60 * 1000)
     return () => clearInterval(timerRef.current)
-  }, [reminderInterval, consumed, goal, alertStyle])
+  }, [reminderInterval, consumed, goal, alertStyle, notifEnabled])
 
   // Midnight reset — just re-renders because todayKey changes
   useEffect(() => {
@@ -114,11 +131,20 @@ export default function WaterScreen() {
     const data = { goal:tempGoal, reminderInterval:tempInterval, defaultSize:tempSize, alertStyle:tempAlert }
     if (settingsDocs[0]) await updateSettings(settingsDocs[0].id, data)
     else await addSettings(data)
+    // Reschedule with new interval
+    if (isNative() && notifEnabled) {
+      await cancelWaterReminders()
+      await scheduleWaterReminder({ intervalMinutes: tempInterval, consumed, goal: tempGoal })
+    }
     setShowSettings(false)
   }
 
   const requestNotif = async () => {
-    if ('Notification' in window) await Notification.requestPermission()
+    const granted = await requestNotificationPermission()
+    setNotifEnabled(granted)
+    if (granted && isNative()) {
+      scheduleWaterReminder({ intervalMinutes: reminderInterval, consumed, goal })
+    }
   }
 
   // History: last 90 days grouped by date
@@ -144,6 +170,14 @@ export default function WaterScreen() {
 
   return (
     <div className="screen">
+      {/* Notification enable banner */}
+      {!notifEnabled && (
+        <div style={{ background:'#E3F2FD', padding:'10px 14px', flexShrink:0, display:'flex', alignItems:'center', gap:10 }}>
+          <span style={{ fontSize:16 }}>🔔</span>
+          <span style={{ fontSize:12, color:'#0277BD', flex:1 }}>Ative notificações para lembretes de água</span>
+          <button onClick={requestNotif} style={{ background:'#0288D1', border:'none', borderRadius:8, padding:'5px 12px', fontSize:12, color:'#fff', cursor:'pointer' }}>Ativar</button>
+        </div>
+      )}
       {/* Quick add at top */}
       <div style={{ padding:'10px 14px 0', flexShrink:0 }}>
         <div style={{ display:'flex', gap:6 }}>
@@ -302,10 +336,15 @@ export default function WaterScreen() {
                   ))}
                 </div>
               </div>
-              {'Notification' in window && Notification.permission !== 'granted' && (
+              {!notifEnabled && (
                 <button onClick={requestNotif} style={{ background:'#E3F2FD', border:'none', borderRadius:10, padding:'10px', fontSize:13, color:'#0277BD', cursor:'pointer', width:'100%' }}>
-                  🔔 Ativar notificações
+                  🔔 Ativar notificações de água
                 </button>
+              )}
+              {notifEnabled && isNative() && (
+                <div style={{ background:'#E8F5E9', borderRadius:10, padding:'10px', fontSize:12, color:'#27500A' }}>
+                  ✅ Notificações ativas — lembretes agendados a cada {reminderInterval} min
+                </div>
               )}
             </div>
             <div style={{ display:'flex', gap:8 }}>

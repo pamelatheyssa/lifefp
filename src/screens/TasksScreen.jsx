@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useData } from '../useData.js'
 import {
   requestNotificationPermission,
+  checkNotificationPermission,
   scheduleTaskNotification,
   cancelTaskNotification,
   rescheduleAll
@@ -59,21 +60,7 @@ export default function TasksScreen() {
   const [form, setForm] = useState(emptyForm)
 
   useEffect(() => {
-    const check = async () => {
-      // Check web notification
-      if ('Notification' in window && Notification.permission === 'granted') {
-        setNotifEnabled(true); return
-      }
-      // Check native Capacitor
-      if (typeof window !== 'undefined' && window.Capacitor?.isNativePlatform?.()) {
-        try {
-          const { LocalNotifications } = await import('@capacitor/local-notifications')
-          const { display } = await LocalNotifications.checkPermissions()
-          setNotifEnabled(display === 'granted')
-        } catch {}
-      }
-    }
-    check()
+    checkNotificationPermission().then(setNotifEnabled)
   }, [])
 
   useEffect(() => {
