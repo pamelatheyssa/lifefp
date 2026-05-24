@@ -108,24 +108,24 @@ export default function CalendarScreen() {
   }
 
   const openEdit = (ev) => {
-    // If virtual, edit the source event
     const source = ev._virtual ? rawEvents.find(e => e.id === ev._sourceId) : ev
     if (!source) return
     setEditItem(source)
-    setForm({ title:source.title, time:source.time||'09:00', allDay:source.allDay||false, note:source.note||'', repeat:source.repeat||'none', emoji:source.emoji||'' })
+    setForm({ title:source.title, time:source.time||'09:00', allDay:source.allDay||false, note:source.note||'', repeat:source.repeat||'none', emoji:source.emoji||'', date:source.date||sel })
     setEvColor(source.color || COLORS[0])
-    // Keep sel on the clicked date so date field shows the original date
     setShowForm(true)
   }
 
   const save = async () => {
     if (!form.title.trim()) return
+    const saveDate = editItem ? (form.date || editItem.date) : sel
     if (editItem) {
-      await update(editItem.id, { ...form, date: editItem.date, color: evColor })
+      await update(editItem.id, { ...form, date: saveDate, color: evColor })
+      if (saveDate !== sel) setSel(saveDate) // navigate to new date
     } else {
-      await add({ ...form, date: sel, color: evColor, done: false })
+      await add({ ...form, date: saveDate, color: evColor, done: false })
     }
-    setForm({ title:'', time:'09:00', allDay:false, note:'', repeat:'none', emoji:'' })
+    setForm({ title:'', time:'09:00', allDay:false, note:'', repeat:'none', emoji:'', date:'' })
     setEditItem(null); setShowForm(false)
   }
 
@@ -304,7 +304,7 @@ export default function CalendarScreen() {
                 <input type="text" placeholder="Título" value={form.title} onChange={e=>setForm({...form,title:e.target.value})} autoFocus style={{ flex:1 }}/>
               </div>
               <div className="form-row">
-                <div><label className="form-label">Data</label><input type="date" value={editItem ? editItem.date : sel} onChange={e=>{ if(!editItem) setSel(e.target.value) }}/></div>
+                <div><label className="form-label">Data</label><input type="date" value={editItem ? (form.date||editItem.date) : sel} onChange={e=>{ if(editItem) setForm({...form,date:e.target.value}); else setSel(e.target.value) }}/></div>
                 <div><label className="form-label">Hora</label><input type="time" value={form.time} onChange={e=>setForm({...form,time:e.target.value})}/></div>
               </div>
               <label style={{ display:'flex', alignItems:'center', gap:8, fontSize:13, cursor:'pointer' }}>

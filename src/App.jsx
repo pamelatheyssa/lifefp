@@ -15,6 +15,7 @@ import ChoresScreen             from './screens/ChoresScreen.jsx'
 import WishlistScreen           from './screens/WishlistScreen.jsx'
 import WaterScreen              from './screens/WaterScreen.jsx'
 import PrivateFinanceScreen     from './screens/PrivateFinanceScreen.jsx'
+import MedsScreen              from './screens/MedsScreen.jsx'
 import CustomTabScreen          from './screens/CustomTabScreen.jsx'
 import ProfileModal             from './components/ProfileModal.jsx'
 import NewTabModal              from './components/NewTabModal.jsx'
@@ -33,6 +34,7 @@ const BUILTIN_TABS = [
   { id:'chores',          label:'Tarefas Casa',     icon:'🧹', scope:'group'   },
   { id:'wishlist',        label:'Wishlist',         icon:'🛍️', scope:'private' },
   { id:'privatefinance',  label:'Finanças Privadas',icon:'🔐', scope:'private' },
+  { id:'meds',            label:'Medicamentos',     icon:'💊', scope:'private' },
 ]
 
 const SCREENS = {
@@ -49,6 +51,7 @@ const SCREENS = {
   chores:          <ChoresScreen />,
   wishlist:        <WishlistScreen />,
   privatefinance:  <PrivateFinanceScreen />,
+  meds:            <MedsScreen />,
 }
 
 const S_TABS      = 'lp_visible_tabs'
