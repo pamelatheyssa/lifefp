@@ -42,10 +42,10 @@ export default function FinanceScreen({
   const { group } = useAuth()
   const { items:transactions, add, update, remove }                         = useData(txCollection,              scope)
   const { items:cycleDocs,    add:addCycle,  update:updateCycle }           = useData(settingsCollection,         scope)
-  const { items:trackerRows,  add:addRow,    update:updateRow, remove:removeRow } = useData(trackerCollection,   'private')
-  const { items:sobrasData,   add:addSobra,  update:updateSobra }           = useData(sobrasCollection,          scope)
-  const { items:trackerSettings, add:addTrSet, update:updateTrSet }         = useData(trackerSettingsCollection, 'private')
-  const { items:cycleNames,   add:addCName,  update:updateCName }           = useData(settingsCollection+'Names', scope)
+  const { items:trackerRows,  add:addRow,    update:updateRow, remove:removeRow } = useData(trackerCollection,        scope)
+  const { items:sobrasData,   add:addSobra,  update:updateSobra }                 = useData(sobrasCollection,          scope)
+  const { items:trackerSettings, add:addTrSet, update:updateTrSet }               = useData(trackerSettingsCollection, scope)
+  const { items:cycleNames,   add:addCName,  update:updateCName }                 = useData(settingsCollection+'Names', scope)
 
   const cycleDay    = cycleDocs[0]?.cycleDay || 1
   const setCycleDay = async v => {
