@@ -138,7 +138,7 @@ export default function FinanceScreen({
           <div style={{display:'flex',justifyContent:'flex-end',marginBottom:8,marginTop:6}}>
             <button onClick={()=>setShowCycle(true)} style={{background:'#f0efe8',border:'none',borderRadius:8,padding:'5px 12px',fontSize:11,color:'#555',cursor:'pointer'}}>📅 Ciclo: dia {cycleDay}</button>
           </div>
-          {cycles.map(cycle=>{
+          {[...cycles].reverse().map(cycle=>{
             const txs = transactions.filter(t=>txInCycle(t,cycle))
             if (!txs.length) return null
             const inc  = txs.filter(t=>t.type==='in').reduce((s,t)=>s+t.amount,0)
@@ -209,13 +209,14 @@ export default function FinanceScreen({
               </>
             )}
           </div>
-          {cycles.map(cycle=>{
+          {[...cycles].reverse().map(cycle=>{
             const rows   = trackerRows.filter(r=>(r.cycleKey||curCycle?.key)===cycle.key)
             const total  = rows.reduce((s,r)=>s+(parseFloat(r.amount)||0),0)
             const open   = expandedTr[cycle.key]!==false
             const isCur  = cycle.key===curCycle?.key
             const name   = getCName(cycle.key)
             const pending= rows.some(r=>!r.checked)
+            // Always show current cycle; show past cycles if they have data
             if (!rows.length&&!isCur) return null
             return (
               <div key={cycle.key} style={{marginBottom:10,border:'0.5px solid #e4e2dc',borderRadius:12,overflow:'hidden'}}>
@@ -295,7 +296,7 @@ export default function FinanceScreen({
       {subTab==='sobras' && (
         <div className="screen-scroll">
           <div style={{fontSize:12,color:'#888',marginBottom:12,marginTop:8}}>Controle de sobras por ciclo · percentuais editáveis</div>
-          {cycles.map(cycle=>{
+          {[...cycles].reverse().map(cycle=>{
             const key  = cycle.key
             const doc  = sobrasData.find(d=>d.monthKey===key)||{}
             const sv   = async (f,v)=>{ if(doc.id) await updateSobra(doc.id,{[f]:v}); else await addSobra({monthKey:key,[f]:v}) }
